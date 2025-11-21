@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { dbConnect } from './database/dbConnect.js';
 
 export const app = express();
 config({ path: './config.env' });
@@ -15,3 +16,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// databse
+dbConnect();
+
+
+
