@@ -1,6 +1,7 @@
 import ErrorHandler from '../meddilwares/errorHendler.js';
 import { catchAsyncError } from '../meddilwares/catchAsyncError.js';
 import { User } from '../models/userModels.js';
+import { sendToken } from '../utils/sendToken.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
 	try {
@@ -39,4 +40,26 @@ export const register = catchAsyncError(async (req, res, next) => {
 	} catch (error) {
 		next(error);
 	}
+});
+
+export const login = catchAsyncError(async (req, res, next) => {
+	const { email, password } = req.body;
+
+	if (!email || !password) {
+		return next(new ErrorHandler('All fields are required.'));
+	}
+
+	const user = await User.findOne({ email }).select('+password');
+
+	if (!user) {
+		return next(new ErrorHandler('Invalid email or password', 400));
+	}
+
+	const isPasswordMatch = await user.comparePassword(password);
+
+	if (!isPasswordMatch) {
+		return next(new ErrorHandler('Invalid email or password', 400));
+	}
+
+	sendToken(user, 200, 'User logged in successfully,', res);
 });
