@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { dbConnect } from './database/dbConnect.js';
+import { errorMiddleWare } from './meddilwares/errorHendler.js';
 
 export const app = express();
 config({ path: './config.env' });
@@ -20,5 +21,5 @@ app.use(express.urlencoded({ extended: true }));
 // databse
 dbConnect();
 
-
-
+// Error hendler
+app.use(errorMiddleWare);
