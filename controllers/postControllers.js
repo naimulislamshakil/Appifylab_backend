@@ -19,11 +19,20 @@ export const addPost = catchAsyncError(async (req, res, next) => {
 			},
 		});
 
-        res.status(200).json({
-            success: true,
-            message:"Post create successfully."
-        })
+		res.status(200).json({
+			success: true,
+			message: 'Post create successfully.',
+		});
 	} catch (error) {
 		next(new ErrorHandler('Post not Create', 400));
 	}
+});
+
+export const getAllPost = catchAsyncError(async (req, res, next) => {
+	const post = await Post.find();
+
+	res.status(200).json({
+		status: true,
+		post,
+	});
 });

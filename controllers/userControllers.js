@@ -49,7 +49,7 @@ export const login = catchAsyncError(async (req, res, next) => {
 		return next(new ErrorHandler('All fields are required.'));
 	}
 
-	const user = await User.findOne({ email }).select('+password');
+	const user = await User.findOne({ email }).populate('post').select('+password');
 
 	if (!user) {
 		return next(new ErrorHandler('Invalid email or password', 400));
