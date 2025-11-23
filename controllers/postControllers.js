@@ -34,7 +34,11 @@ export const addPost = catchAsyncError(async (req, res, next) => {
 });
 
 export const getAllPost = catchAsyncError(async (req, res, next) => {
-	const post = await Post.find().populate('user').sort({ createdAt: -1 });
+	const post = await Post.find()
+		.populate('user')
+		.populate('like')
+		.populate('comment.user', 'firstName lastName')
+		.sort({ createdAt: -1 });
 
 	res.status(200).json({
 		status: true,
@@ -45,43 +49,68 @@ export const getAllPost = catchAsyncError(async (req, res, next) => {
 export const addLoveOrUnlike = catchAsyncError(async (req, res, next) => {
 	try {
 		const { id } = req.body;
-		const { _id } = req.user;
+		const userId = req.user._id;
+
 		if (!id) return next(new ErrorHandler('Select a post.', 400));
 
 		const post = await Post.findById(id);
+		if (!post) return next(new ErrorHandler('Post not found.', 404));
 
-		const like = post.like.some((id) => id.toString() === _id.toString());
+		const hasLiked = post.like.some(
+			(likeId) => likeId.toString() === userId.toString()
+		);
 
-		if (like === false) {
-			const updatePost = await Post.findByIdAndUpdate(id, {
-				$push: {
-					like: _id,
-				},
-			});
+		if (!hasLiked) {
+			post.like.push(userId);
+			await post.save();
 
 			return res.status(200).json({
 				success: true,
-				message: 'You love this post.',
+				message: 'You loved this post.',
+				liked: true,
+				likeCount: post.like.length ? post.like.length : 0,
 			});
-		}
-
-		if (like === true) {
-			const updatePost = await Post.findByIdAndUpdate(
-				id,
-				{
-					$pull: {
-						like: _id,
-					},
-				},
-				{
-					new: true,
-				}
+		} else {
+			post.like = post.like.filter(
+				(likeId) => likeId.toString() !== userId.toString()
 			);
+			await post.save();
 
 			return res.status(200).json({
 				success: true,
-				message: 'You unlike this post.',
+				message: 'You unliked this post.',
+				liked: false,
+				likeCount: post.like.length ? post.like.length : 0,
 			});
 		}
-	} catch (error) {}
+	} catch (error) {
+		next(error);
+	}
+});
+
+export const addComment = catchAsyncError(async (req, res, next) => {
+	try {
+		const { postId, comment } = req.body;
+		const userId = req.user._id;
+
+		if (!postId || !comment) {
+			return next(new ErrorHandler('Select a post.', 400));
+		}
+
+		const post = await Post.findById(postId);
+		if (!post) {
+			return next(new ErrorHandler('Post not found', 400));
+		}
+
+		post.comment.push({ user: userId, comment });
+
+		await post.save();
+
+		return res.status(200).json({
+			success: true,
+			message: 'Comment added successfully',
+		});
+	} catch (error) {
+		next(error);
+	}
 });

@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+	addComment,
 	addLoveOrUnlike,
 	addPost,
 	getAllPost,
@@ -10,6 +11,7 @@ const router = express.Router();
 
 router.post('/addpost', isAuthenticated, addPost);
 router.get('/getAllPost', isAuthenticated, getAllPost);
-router.get('/addLoveOrUnlike', isAuthenticated, addLoveOrUnlike);
+router.post('/addLoveOrUnlike', isAuthenticated, addLoveOrUnlike);
+router.post('/addComment', isAuthenticated, addComment);
 
 export default router;
